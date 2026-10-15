@@ -27,7 +27,7 @@ Using the wrong one gives `NoClassDefFoundError: jakarta/servlet/http/HttpServle
 ## Build
 
     cd jakarta && mvn clean package     # target/duke-test.war
-    cd javax   && mvn clean package     # target/duke-test-javax.war
+    cd javax   && mvn clean package     # target/duke-test.war
 
 ## Deploy
 
