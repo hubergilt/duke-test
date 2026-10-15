@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Duke Java Server Test</title>
+    <style>
+      :root {
+        --bg: #f4f6fa;
+        --fg: #222;
+        --panel: #ffffff;
+        --muted: #667085;
+        --line: #e3e7ee;
+        --ok: #1a9d4b;
+        --bad: #d92d20;
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #1b1f27;
+          --fg: #e8eaf0;
+          --panel: #252b36;
+          --muted: #9aa4b5;
+          --line: #353d4b;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #1b1f27;
+        --fg: #e8eaf0;
+        --panel: #252b36;
+        --muted: #9aa4b5;
+        --line: #353d4b;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 20px 14px;
+        box-sizing: border-box;
+        min-height: 100vh;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .sub {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      /* Layout: Duke on the left, server info on the right; wraps on phones */
+      .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        align-items: stretch;
+        max-width: 860px;
+        width: 100%;
+      }
+
+      /* ---------- Duke card ---------- */
+      .card {
+        background: #f4f6fa;
+        border-radius: 20px;
+        padding: 24px 34px 18px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+        display: flex;
+        align-items: center;
+      }
+      .stage {
+        position: relative;
+        width: 226px;
+        height: 407px;
+        zoom: 0.8;
+      }
+      .stage * {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 226px;
+        height: 407px;
+      }
+
+      .body {
+        background: #000;
+        clip-path: path(
+          evenodd,
+          "M48.859,43.518c8.424,17.64,2.736,140.832-7.128,184.032c-9.864,43.272-19.728,98.28-22.032,144.576c-1.008,19.728,2.016,27.504,14.904,27.504c22.752,0,51.624-47.952,87.84-46.872c36.288,1.08,47.808,55.008,64.8,54.648c16.992-0.36,30.672-6.264,30.816-58.752C218.563,191.981,87.235,64.973,48.859,43.518L48.859,43.518L48.859,43.518L48.859,43.518z"
+        );
+      }
+      .hand {
+        background: #000;
+        clip-path: path(
+          evenodd,
+          "M162.763,168.726c7.992,13.464,28.368,3.096,29.232-12.096c0.864-15.192-1.368-34.344-11.232-35.064c-9.864-0.72-16.92-10.584-26.784-11.304c-9.864-0.72-20.448,9.144-25.056-3.96s12.384-18.648,25.056-20.736c-11.304-11.304-17.928-23.832-22.896-36.864c-4.968-13.032-8.64-24.984,5.256-30.096c13.896-5.112,12.744,21.168,28.656,33.192c-4.68-17.712-6.408-25.056-6.048-35.352s-0.36-18.144,14.256-16.128c14.616,2.016,8.28,32.4,19.656,44.784c3.456-11.736,5.544-26.64,13.896-32.76s27.36-6.264,15.264,18.864c-12.096,25.128,3.528,38.736-0.144,58.536c-3.672,19.8-15.048,16.2-19.944,28.944c-4.896,12.744,2.88,41.76-6.336,54.792c-9.216,13.032-10.872,33.048-4.896,49.032C172.339,205.374,162.763,168.726,162.763,168.726L162.763,168.726L162.763,168.726L162.763,168.726z"
+        );
+        transform-origin: 172px 172px;
+        animation: wave 0.9s ease-in-out infinite alternate;
+      }
+      .arm-l {
+        background: #000;
+        clip-path: path(
+          evenodd,
+          "M48.355,185.646c-7.416,50.832-33.192,56.88-34.488,77.976c-1.296,21.096,6.84,23.112,6.336,42.624c-0.504,19.512-17.856,27.432-19.944,38.016s8.928,13.968,15.336,13.968c6.408,0,12.816-28.08,15.408-45.936s-8.496-28.368-8.496-40.608c0-12.24,16.056-34.632,13.104-14.976C48.931,235.686,55.268,208.901,48.355,185.646L48.355,185.646L48.355,185.646L48.355,185.646z"
+        );
+      }
+      .belly {
+        background: #fff;
+        clip-path: path(
+          evenodd,
+          "M58.292,205.013c-5.616,27.504-40.68,181.08-22.824,183.024c17.856,1.944,43.272-47.52,84.888-47.16c41.688,0.36,58.104,55.44,68.256,55.08c10.152-0.36,16.848,3.6,17.928-58.464c1.08-62.064-36.792-141.336-59.184-176.256C116.971,163.181,84.283,187.518,58.292,205.013L58.292,205.013L58.292,205.013L58.292,205.013z"
+        );
+      }
+      .nose {
+        left: 68px;
+        top: 141px;
+        width: 79px;
+        height: 72px;
+        border-radius: 50%;
+        border: 1px solid #000;
+        background: radial-gradient(
+          circle at 19px 26px,
+          #fff 0,
+          #fbc8b4 6%,
+          #f7978b 18%,
+          #f15251 42%,
+          #ee292f 68%,
+          #ed1c24 100%
+        );
+        transform-origin: 50% 50%;
+        animation: pulse 1.8s ease-in-out infinite alternate;
+      }
+
+      .duke {
+        animation: bob 2.4s ease-in-out infinite alternate;
+      }
+      @keyframes wave {
+        from {
+          transform: rotate(-1deg);
+        }
+        to {
+          transform: rotate(10deg);
+        }
+      }
+      @keyframes pulse {
+        to {
+          transform: scale(1.05);
+        }
+      }
+      @keyframes bob {
+        to {
+          transform: translateY(-4px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .duke,
+        .hand,
+        .nose {
+          animation: none;
+        }
+      }
+
+      /* ---------- Info panel ---------- */
+      .panel {
+        flex: 1 1 340px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 18px 20px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--muted);
+      }
+      .badge.up .dot {
+        background: var(--ok);
+        box-shadow: 0 0 0 4px rgba(26, 157, 75, 0.2);
+      }
+      .badge.down .dot {
+        background: var(--bad);
+        box-shadow: 0 0 0 4px rgba(217, 45, 32, 0.2);
+      }
+      button {
+        font: inherit;
+        font-size: 13px;
+        color: var(--fg);
+        background: transparent;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--muted);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 7px 0;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 500;
+        width: 38%;
+        padding-right: 12px;
+      }
+      td {
+        word-break: break-word;
+        font-variant-numeric: tabular-nums;
+      }
+      tr.highlight td {
+        font-weight: 600;
+      }
+      .links {
+        margin-top: 12px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .links a {
+        color: inherit;
+      }
+      .err {
+        color: var(--bad);
+        font-size: 14px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Duke Java Server Test</h1>
+    <p class="sub">If you can see this and the panel says UP, your WAR is deployed and running.</p>
+
+    <div class="wrap">
+      <div class="card">
+        <div class="stage" role="img" aria-label="Duke, the Java mascot, waving">
+          <div class="duke">
+            <div class="body"></div>
+            <div class="hand"></div>
+            <div class="arm-l"></div>
+            <div class="belly"></div>
+            <div class="nose"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span id="badge" class="badge"><span class="dot"></span><span id="state">Checking…</span></span>
+          <button id="refresh" type="button">Refresh</button>
+        </div>
+        <table id="info" aria-live="polite"></table>
+        <div class="links">
+          Endpoints: <a href="api/info">api/info</a> (JSON) ·
+          <a href="health">health</a> (text)
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Friendly labels, in display order. Keys come from InfoServlet (api/info).
+      const FIELDS = [
+        ["server", "Application server", true],
+        ["servletSpec", "Servlet spec"],
+        ["contextPath", "Context path"],
+        ["javaVersion", "Java version", true],
+        ["javaVendor", "Java vendor"],
+        ["jvm", "JVM"],
+        ["os", "Operating system"],
+        ["cpus", "CPUs"],
+        ["maxMemoryMB", "Max heap (MB)"],
+        ["jvmUptime", "JVM uptime"],
+        ["serverTime", "Server time"],
+        ["thread", "Request thread"],
+        ["clientAddress", "Client address"],
+        ["protocol", "Protocol"],
+        ["sessionHits", "Session hits (reload to test)"],
+      ];
+
+      const badge = document.getElementById("badge");
+      const stateEl = document.getElementById("state");
+      const table = document.getElementById("info");
+
+      function setState(ok, text) {
+        badge.className = "badge " + (ok ? "up" : "down");
+        stateEl.textContent = text;
+      }
+
+      function render(data) {
+        table.replaceChildren();
+        for (const [key, label, highlight] of FIELDS) {
+          if (!(key in data)) continue;
+          const tr = document.createElement("tr");
+          if (highlight) tr.className = "highlight";
+          const th = document.createElement("th");
+          th.textContent = label;
+          const td = document.createElement("td");
+          td.textContent = data[key];
+          tr.append(th, td);
+          table.append(tr);
+        }
+      }
+
+      async function load() {
+        setState(false, "Checking…");
+        badge.className = "badge";
+        try {
+          // Relative URL so it works under any context path (/duke-test, /, ...).
+          const res = await fetch("api/info", { cache: "no-store", credentials: "same-origin" });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const data = await res.json();
+          render(data);
+          setState(true, "UP");
+        } catch (e) {
+          table.replaceChildren();
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.className = "err";
+          td.textContent =
+            "Page loaded, but the servlet did not answer (" + e.message +
+            "). The WAR is served, but servlets/annotation scanning may not be working.";
+          tr.append(td);
+          table.append(tr);
+          setState(false, "Servlet unreachable");
+        }
+      }
+
+      document.getElementById("refresh").addEventListener("click", load);
+      load();
+    </script>
+  </body>
+</html>
